@@ -15,6 +15,7 @@ import traceback
 
 from datetime import date, datetime, timedelta
 import ephem
+import json
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -96,46 +97,66 @@ try:
     drawRed = ImageDraw.Draw(redImage)
     
     
-    for shownWeek in range(14):
-        weekNumber = cursorDate.isocalendar().week
-        pxWeekPositionX = pxWeekPadLeft if weekNumber > 9 else pxWeekPadLeft + 13
-        drawBlack.text((pxWeekPositionX, pxDateCursorY), str(weekNumber), font = font24, fill = 0)
+    with open('entries.json') as f:
+        entries = json.load(f)
+    
+        for shownWeek in range(14):
+            weekNumber = cursorDate.isocalendar().week
+            pxWeekPositionX = pxWeekPadLeft if weekNumber > 9 else pxWeekPadLeft + 13
+            drawBlack.text((pxWeekPositionX, pxDateCursorY), str(weekNumber), font = font24, fill = 0)
 
-        for shownWeekday in range(7):
-            dateNumber = cursorDate.strftime("%d")
+            for shownWeekday in range(7):
+                dateNumber = cursorDate.strftime("%d")
 
-            # Add some horizontal separation between the week and the weekend
-            if cursorDate.weekday() == 5:
-                pxDateCursorX += pxWeekendSeparation
-                
-            # Add a bit of vertical separation when the month changes (even during the week)
-            if cursorMonth != cursorDate.month:
-                pxDateCursorY += pxMonthSeparation
-                cursorMonth = cursorDate.month
+                # Add some horizontal separation between the week and the weekend
+                if cursorDate.weekday() == 5:
+                    pxDateCursorX += pxWeekendSeparation
+                    
+                # Add a bit of vertical separation when the month changes (even during the week)
+                if cursorMonth != cursorDate.month:
+                    pxDateCursorY += pxMonthSeparation
+                    cursorMonth = cursorDate.month
 
-            # Write the date
-            if cursorDate == today:
                 left = pxDateCursorX - 3
                 right = pxDateCursorX + 28
                 top = pxDateCursorY + 1
                 bottom = pxDateCursorY + 27
-                drawRed.rectangle((left, top, right, bottom), fill = 0)                             # Paint a red rectangle
-                drawRed.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 255) # Remove the red color where we want the date to show
-            else:
-                if cursorDate.weekday() == 6:
-                    drawRed.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 0)
+                    
+                # Mark date if necessary
+                isMarking2 = False
+                year = cursorDate.strftime("%Y")
+                month = cursorDate.strftime("%-m")
+                day = cursorDate.strftime("%-d")
+                if year in entries and month in entries[year] and day in entries[year][month]:
+                    markings = entries[year][month][day]
+                    if markings == 1:
+                        drawRed.line((left-1, bottom-2, right+2, bottom-2), fill = 0)
+                        drawRed.line((left-1, bottom-1, right+2, bottom-1), fill = 0)
+                    elif markings == 2:
+                        isMarking2 = True
+
+                # Write the date
+                if cursorDate == today:
+                    drawRed.rectangle((left, top, right, bottom), fill = 0)                             # Paint a red rectangle
+                    drawRed.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 255) # Remove the red color where we want the date to show
                 else:
-                    drawBlack.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 0)
+                    if cursorDate.weekday() == 6:
+                        drawRed.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 0)
+                    else:
+                        if isMarking2:
+                            drawRed.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 0)
+                        else:
+                            drawBlack.text((pxDateCursorX, pxDateCursorY), dateNumber, font = font24, fill = 0)
+                
+                pxDateCursorX += pxDayInterval
+                cursorDate += oneDay
 
-            pxDateCursorX += pxDayInterval
-            cursorDate += oneDay
+            pxDateCursorY += pxWeekSeparation
+            pxDateCursorX = pxMondayX
 
-        pxDateCursorY += pxWeekSeparation
-        pxDateCursorX = pxMondayX
-
-    drawBlack.text((30, 0), headerText, font = font18, fill = 0)
-    drawBlack.line((0, pxDecoHeaderSeparatorY, 299, pxDecoHeaderSeparatorY), fill = 0)
-    drawBlack.line((pxDecoWeeknumberSeparatorX, 22, pxDecoWeeknumberSeparatorX, 399), fill = 0)
+        drawBlack.text((30, 0), headerText, font = font18, fill = 0)
+        drawBlack.line((0, pxDecoHeaderSeparatorY, 299, pxDecoHeaderSeparatorY), fill = 0)
+        drawBlack.line((pxDecoWeeknumberSeparatorX, 22, pxDecoWeeknumberSeparatorX, 399), fill = 0)
     
     epd.display(epd.getbuffer(blackImage), epd.getbuffer(redImage))
     time.sleep(2)
