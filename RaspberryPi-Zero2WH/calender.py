@@ -71,10 +71,27 @@ try:
         else:
             headerText = "Vollmond heute"
     elif daysLeft == 1:
-        headerText = "Nächster " + headerText + " morgen"
+        headerText = headerText + " morgen"
     elif daysLeft > 1:
-        headerText = "Nächster " + headerText + " in " + str(round(daysLeft)) + " Tagen"
-        
+        headerText = str(round(daysLeft)) + " Tage bis " + headerText
+
+    homeLat = '50.0'
+    homeLon = '10.0'
+
+    home = ephem.Observer()
+    home.lat, home.lon = homeLat, homeLon
+    home.date = datetime.utcnow()
+
+    moon = ephem.Moon()
+    moon.compute(home)
+    format = "%-H:%M"
+    nextRising = home.next_rising(moon)
+    nextSetting = home.next_setting(moon)
+    moonrise = ephem.localtime(nextRising).strftime(format)
+    moonset  = ephem.localtime(nextSetting).strftime(format)
+
+    headerText += " ▲" + moonrise + " ▼" + moonset
+
     logging.info("Header text: " + headerText)
 
 
@@ -154,7 +171,7 @@ try:
             pxDateCursorY += pxWeekSeparation
             pxDateCursorX = pxMondayX
 
-        drawBlack.text((30, 0), headerText, font = font18, fill = 0)
+        drawBlack.text((5, 0), headerText, font = font18, fill = 0)
         drawBlack.line((0, pxDecoHeaderSeparatorY, 299, pxDecoHeaderSeparatorY), fill = 0)
         drawBlack.line((pxDecoWeeknumberSeparatorX, 22, pxDecoWeeknumberSeparatorX, 399), fill = 0)
     
