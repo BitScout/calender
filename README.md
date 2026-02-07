@@ -44,3 +44,13 @@ where you can set your WiFi credentials as well as a username and password in ad
 
 Print the frame part of the main body with 100% infill to avoid visible infill patterns.
 
+
+### Configuration
+
+The `entries.json` file allows marking dates with one or more of the following markings:
+
+`1` - Underlined, for example for vacation days
+`2` - Red font (like on sundays), for example for official holidays
+`3` - Red vertical bars left and right to the date, for important days
+
+You can apply multiple markings by setting the day's value to `13` or `31` for example.

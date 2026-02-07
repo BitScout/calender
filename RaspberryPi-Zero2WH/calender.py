@@ -146,11 +146,13 @@ try:
                 day = cursorDate.strftime("%-d")
                 if year in entries and month in entries[year] and day in entries[year][month]:
                     markings = entries[year][month][day]
-                    if markings == 1:
-                        drawRed.line((left-1, bottom-2, right+2, bottom-2), fill = 0)
-                        drawRed.line((left-1, bottom-1, right+2, bottom-1), fill = 0)
-                    elif markings == 2:
+                    if '1' in str(markings):
+                        drawRed.rectangle((left-1, bottom-2, right+2, bottom-1), fill = 0)
+                    if '2' in str(markings):
                         isMarking2 = True
+                    if '3' in str(markings):
+                        drawRed.rectangle((left-1, top+4, left+1, bottom-4), fill = 0)
+                        drawRed.rectangle((right-1, top+4, right+1, bottom-4), fill = 0)
 
                 # Write the date
                 if cursorDate == today:
